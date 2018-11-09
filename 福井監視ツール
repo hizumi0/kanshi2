@@ -9,20 +9,18 @@
 import sys
 import requests
 import time
+import array
 import dateutil.parser
 import smtplib
 from email.mime.text import MIMEText
 from email.utils import formatdate
 from email.header import Header
  
-API ="https://api.bitflyer.jp/v1/ticker"
+API ="https://api.nanopool.org/v1/zec/hashrate/:address/:worker/r"
  
- 
-#暴騰・暴落の価格差（円）
-chk_yen = 5000
  
 #スリープ時間(秒)
-sleep_time = 60
+sleep_time = 300
  
 #★送信元メール
 MY_ADDRESS = ''
@@ -37,8 +35,7 @@ SMTP_SERVER = ''
 TO_ADDRESS = ''
  
 #メール件名
-subject_header = "【Bitcoin価格チェック】"
- 
+subject_header = "【ハッシュレートチェック】"
  
 #
 #関数：メール送信
@@ -58,10 +55,10 @@ def org_send_mail(from_address,to_address,subject,body):
  
 #
 #メイン
-#
 if __name__ == '__main__':
 	i=0
-	bid_btc=[]
+    
+if hashrate_address < 0:
  
 	charset = "ISO-2022-JP"
  
@@ -75,9 +72,6 @@ if __name__ == '__main__':
 		#JSON取得
 		json = res.json()
  
-		#リストに追加
-		bid_btc.append(int(json["best_bid"]))
- 
 		#タイムスタンプ
 		tstr = json["timestamp"]
  
@@ -86,16 +80,14 @@ if __name__ == '__main__':
  
 		tdatetime_str = tdatetime.strftime('%Y/%m/%d %H:%M:%S')
  
-		if i != 0:
-			#価格差取得
-			kakakusa = int(bid_btc[i]) - int(bid_btc[i-1])
-			if kakakusa > 0 and kakakusa >= chk_yen:
-				updown = " ↑+"+ str(kakakusa) + "円"
- 
+		if hashrate_address < 0:
+			#ハッシュレート取得
+			hashrate = int(hashrate_address[i])  < 0 :
+				
 				#メールタイトル
-				subject = subject_header+"急上昇通知 "+tdatetime_str
+				subject = subject_header+"リグが落ちています "+tdatetime_str
  
-				message_text = tdatetime_str+"\n\nBid："+ "{:,d}".format(bid_btc[i]) + "円\n" + str(sleep_time) + "秒前の価格と比較して、" + str(kakakusa) + "円上昇しています。\n\n▼coinmarketcapでBTCチャート確認\nhttps://coinmarketcap.com/currencies/bitcoin/#charts\n\n▼bitFlyerへ\nhttps://bitflyer.jp/ja/\n\n以上"
+				message_text = tdatetime_str+"\n\nリグが落ちています：" + "\n" + str(sleep_time) ""
  
 				#メール本文
 				body = message_text
@@ -103,30 +95,9 @@ if __name__ == '__main__':
 				#メール送信
 				org_send_mail(MY_ADDRESS,TO_ADDRESS,subject,message_text)
  
-			elif kakakusa < 0 and kakakusa <= chk_yen*-1:
-				updown = " ↓" + str(kakakusa) + "円"
- 
-				#メールタイトル
-				subject = subject_header+"急降下通知 "+tdatetime_str
- 
-				message_text = tdatetime_str+"\n\nBid："+ "{:,d}".format(bid_btc[i]) + "円\n" + str(sleep_time) + "秒前の価格と比較して、" + str(kakakusa) + "円下落しています。\n\n▼coinmarketcapでBTCチャート確認\nhttps://coinmarketcap.com/currencies/bitcoin/#charts\n\n▼bitFlyerへ\nhttps://bitflyer.jp/ja/\n\n以上"
- 
-				#メール本文
-				body = message_text
- 
-				#メール送信
-				org_send_mail(MY_ADDRESS,TO_ADDRESS,subject,message_text)
- 
-			else:
-				updown = ""
-				kakakusa = 0
-				pass
-		else:
-			updown = "";
-			pass
- 
-		print("[" + tdatetime_str + "] BTC_JP Bid: " + "{:,d}".format(bid_btc[i]) + "円" + updown)
- 
+			
+		print("[" + tdatetime_str + "] hashrate_array: " 
+
 		#スリープ
 		time.sleep(int(sleep_time))
  
