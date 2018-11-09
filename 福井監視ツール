@@ -1,0 +1,133 @@
+# ----------------------------------
+#   福井・ZCash監視ツール
+# ----------------------------------
+#   必要パッケージ
+#    pip install python-dateutil
+#    pip install email
+# ----------------------------------
+ 
+import sys
+import requests
+import time
+import dateutil.parser
+import smtplib
+from email.mime.text import MIMEText
+from email.utils import formatdate
+from email.header import Header
+ 
+API ="https://api.bitflyer.jp/v1/ticker"
+ 
+ 
+#暴騰・暴落の価格差（円）
+chk_yen = 5000
+ 
+#スリープ時間(秒)
+sleep_time = 60
+ 
+#★送信元メール
+MY_ADDRESS = ''
+ 
+#★送信元メールパスワード
+MY_PASSWORD = ''
+ 
+#★送信元メールSMTPサーバー
+SMTP_SERVER = ''
+ 
+#★送信先アドレス
+TO_ADDRESS = ''
+ 
+#メール件名
+subject_header = "【Bitcoin価格チェック】"
+ 
+ 
+#
+#関数：メール送信
+#
+def org_send_mail(from_address,to_address,subject,body):
+	msg = MIMEText(body.encode(charset), "plain", charset)
+	msg["Subject"] = Header(subject,charset)
+	msg["From"]    = MY_ADDRESS
+	msg["To"]      = TO_ADDRESS
+	msg["Date"]    = formatdate(localtime=True)
+	smtp = smtplib.SMTP(SMTP_SERVER,587)
+	smtp.ehlo()
+	smtp.starttls()
+	smtp.login(MY_ADDRESS, MY_PASSWORD)
+	smtp.sendmail(from_address,to_address,msg.as_string())
+	smtp.quit()
+ 
+#
+#メイン
+#
+if __name__ == '__main__':
+	i=0
+	bid_btc=[]
+ 
+	charset = "ISO-2022-JP"
+ 
+	#ループ
+	while True:
+		updown=""
+ 
+		#APIリクエスト
+		res = requests.get(API)
+ 
+		#JSON取得
+		json = res.json()
+ 
+		#リストに追加
+		bid_btc.append(int(json["best_bid"]))
+ 
+		#タイムスタンプ
+		tstr = json["timestamp"]
+ 
+		#JSON形式では直接パース出来ないのでdeteutil使用
+		tdatetime = dateutil.parser.parse(tstr)
+ 
+		tdatetime_str = tdatetime.strftime('%Y/%m/%d %H:%M:%S')
+ 
+		if i != 0:
+			#価格差取得
+			kakakusa = int(bid_btc[i]) - int(bid_btc[i-1])
+			if kakakusa > 0 and kakakusa >= chk_yen:
+				updown = " ↑+"+ str(kakakusa) + "円"
+ 
+				#メールタイトル
+				subject = subject_header+"急上昇通知 "+tdatetime_str
+ 
+				message_text = tdatetime_str+"\n\nBid："+ "{:,d}".format(bid_btc[i]) + "円\n" + str(sleep_time) + "秒前の価格と比較して、" + str(kakakusa) + "円上昇しています。\n\n▼coinmarketcapでBTCチャート確認\nhttps://coinmarketcap.com/currencies/bitcoin/#charts\n\n▼bitFlyerへ\nhttps://bitflyer.jp/ja/\n\n以上"
+ 
+				#メール本文
+				body = message_text
+ 
+				#メール送信
+				org_send_mail(MY_ADDRESS,TO_ADDRESS,subject,message_text)
+ 
+			elif kakakusa < 0 and kakakusa <= chk_yen*-1:
+				updown = " ↓" + str(kakakusa) + "円"
+ 
+				#メールタイトル
+				subject = subject_header+"急降下通知 "+tdatetime_str
+ 
+				message_text = tdatetime_str+"\n\nBid："+ "{:,d}".format(bid_btc[i]) + "円\n" + str(sleep_time) + "秒前の価格と比較して、" + str(kakakusa) + "円下落しています。\n\n▼coinmarketcapでBTCチャート確認\nhttps://coinmarketcap.com/currencies/bitcoin/#charts\n\n▼bitFlyerへ\nhttps://bitflyer.jp/ja/\n\n以上"
+ 
+				#メール本文
+				body = message_text
+ 
+				#メール送信
+				org_send_mail(MY_ADDRESS,TO_ADDRESS,subject,message_text)
+ 
+			else:
+				updown = ""
+				kakakusa = 0
+				pass
+		else:
+			updown = "";
+			pass
+ 
+		print("[" + tdatetime_str + "] BTC_JP Bid: " + "{:,d}".format(bid_btc[i]) + "円" + updown)
+ 
+		#スリープ
+		time.sleep(int(sleep_time))
+ 
+		i=i+1
