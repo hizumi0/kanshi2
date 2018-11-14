@@ -1,0 +1,54 @@
+#! python3
+# -*- coding: utf-8 -*-
+#インポートするモジュール*-
+
+import urllib.request
+import urllib.parse
+import json
+import sys
+import codecs
+
+# webAPIからJSONの形式の文字列の結果をもらう
+def dataGet():
+
+    # URIスキーム
+    url = ''
+
+    # URIパラメータのデータ 
+    param = {
+        'address': 'worker',    # 取得したい人のID
+        'type': 'json'             # 取得するデータの指定
+    }
+
+    # webAPIからのJSONを取得
+    response = readObj.read()
+
+    # print type(response)  # >> <type 'str'>
+
+    return response
+
+# webAPIから取得したデータをJSONに変換する
+def jsonConversion(jsonStr):
+
+    # webAPIから取得したJSONデータをpythonで使える形に変換する
+    data = json.loads(jsonStr)
+    return data
+
+    # 日本語が u'\u767d' のようになってしまうため、Unicodeに変換する
+    # return json.dumps(data[0], ensure_ascii=False)
+
+
+if __name__ == '__main__':
+
+    resStr = dataGet()
+    res = jsonConversion(resStr)
+
+    # 取得したデータを表示する
+    for item in res:
+        print(item.dataGet())
+        
+
+
+
+
+
