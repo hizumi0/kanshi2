@@ -16,7 +16,7 @@ from email.mime.text import MIMEText
 from email.utils import formatdate
 from email.header import Header
  
-API ="https://api.nanopool.org/v1/zec/hashrate/:address/:worker/r"
+API =
  
  
 #スリープ時間(秒)
