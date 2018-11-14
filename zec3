@@ -1,0 +1,37 @@
+#! curlコマンドでリグの反応が返ってくるか確かめる
+#! curl '
+
+#! python3
+# -*- coding: utf-8 -*-
+
+#インポートするモジュール*-
+import requests
+import requests, bs4
+
+#ワーカー1~6にアクセスしてリグが正常であれば、成功200のパラメータが返ってくる。失敗した場合はエラー4xx*-
+r = requests.get('')
+r = requests.get('')
+r = requests.get('')
+r = requests.get('')
+r = requests.get('')
+r = requests.get('')
+
+
+
+print(type(r))
+print(r.status_code)
+
+
+#ページを取得。他にもハッシュレート情報など取れようにしていく
+res = requests.get(')
+
+#BeautifulSoupオブジェクトに変換
+soup = bs4.BeautifulSoup(res.content,'lxml') 
+#セレクタを指定して表示
+elems = soup.select('title')
+
+for e in elems:
+    print(e.getText())
+
+
+
